@@ -1,0 +1,133 @@
+/* Estilo geral */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --text-primary-color: #000000;
+  }
+  
+  /* Tema escuro */
+  [data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #000000;
+    --text-primary-color: #fafafa;
+  }
+
+header {
+    display: flex; /* Flexbox para organizar os itens */
+    justify-content: space-between; /* Espaço entre h1 e controle-user */
+    align-items: center; /* Alinha verticalmente ao centro */
+    text-align: center;
+    margin: 20px 0;
+    padding: 0 20px; /* Espaçamento lateral opcional */
+}
+
+header h1 {
+    flex: 1; /* Permite que o h1 ocupe o espaço central */
+    text-align: center; /* Garante que o texto do h1 fique centralizado */
+    color: var(--text-primary-color);
+}
+
+.controle-user {
+    display: flex; /* Permite organizar botões horizontalmente */
+    gap: 10px; /* Espaço entre os botões */
+}
+
+.controle-user button {
+    padding: 5px 10px;
+    border: 1px solid #007BFF;
+    background-color: var(--text-primary-color);
+    color: var(--text-color);
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.controle-user button:hover {
+    background-color: #0056b3;
+}
+
+main {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    /* Garante alinhamento no topo */
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0;
+}
+
+/* Container das boards */
+#boards-container {
+    width: 65%;
+    /* Define o espaço ocupado pelo boards-container */
+    margin-right: 20px;
+    /* Espaço entre boards-container e board-details */
+}
+
+.board {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.board h2 {
+    margin: 0 0 10px;
+}
+
+.details-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+}
+
+.details-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Detalhes da board */
+#board-details {
+    width: 40%;
+    margin-top: 10px;
+    /* Define o espaço ocupado pelo board-details */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f1f1f1;
+    min-height: 170px;
+}
+
+/* Estilo do título dos detalhes */
+.board-details-title {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #333;
+    text-align: center;
+    border-bottom: 2px solid #007BFF;
+    padding-bottom: 5px;
+}
+
+/* Estilo para cada linha de detalhe */
+.board-detail {
+    font-size: 1rem;
+    color: #555;
+    margin: 5px 0;
+}
+
+/* Destaque para as labels (strong) */
+.board-detail strong {
+    color: #007BFF;
+}
