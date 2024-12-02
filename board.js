@@ -10,37 +10,132 @@ class BoardManager {
     }
 
     async init() {
-        // Verificar se usuário está logado
         const userId = localStorage.getItem('userId');
         if (!userId) {
             window.location.href = 'index.html';
             return;
         }
 
-        // Configurar event listeners
         this.setupEventListeners();
-        
-        // Carregar boards
         await this.loadBoards();
     }
 
     setupEventListeners() {
-        // Configurar logout
         this.logoutBtn.addEventListener('click', () => this.handleLogout());
         
-        // Configurar tema
         if (this.themeToggle) {
             this.themeToggle.addEventListener('click', () => this.toggleTheme());
         }
+
+        // Configurar funções globais
+        window.editBoard = (boardId) => this.editBoard(boardId);
+        window.deleteBoard = (boardId) => this.deleteBoard(boardId);
+        window.viewBoardDetails = (boardId) => this.viewBoardDetails(boardId);
     }
 
     handleLogout() {
-        // Limpar dados do localStorage
         localStorage.removeItem('userId');
         localStorage.removeItem('userEmail');
-        
-        // Redirecionar para página de login
         window.location.href = 'index.html';
+    }
+
+    async editBoard(boardId) {
+        try {
+            const board = await apisRequest.GetBoardById(boardId);
+            
+            const modal = document.createElement('div');
+            modal.classList.add('modal', 'flex-centralize');
+            modal.style.animation = 'modalSlideUp 0.3s var(--elastic) forwards';
+
+            const form = document.createElement('form');
+            form.classList.add('modal-content', 'card', 'card-primary');
+            form.innerHTML = `
+                <h2 class="fnt-lg">Editar Quadro</h2>
+                <input id="name" type="text" class="input-primary w-full p-sm border-md" placeholder="Nome do quadro" value="${board.Name}" required>
+                <input id="color" type="color" class="input-primary w-full p-sm border-md" value="${board.HexaBackgroundColor || '#ffffff'}" required>
+                <textarea id="description" class="input-primary w-full p-sm border-md" placeholder="Descrição do quadro" rows="3">${board.Description || ''}</textarea>
+                <div class="flex-row gap-sm w-full">
+                    <button type="submit" class="btn btn-primary w-full p-sm border-md">Salvar</button>
+                    <button type="button" class="btn btn-secondary w-full p-sm border-md">Cancelar</button>
+                </div>
+            `;
+
+            modal.appendChild(form);
+            document.body.appendChild(modal);
+
+            form.querySelector('input').focus();
+
+            form.querySelector('.btn-secondary').onclick = () => {
+                modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
+                setTimeout(() => modal.remove(), 300);
+            };
+
+            form.onsubmit = async (e) => {
+                e.preventDefault();
+                const userId = localStorage.getItem('userId');
+                const updatedBoard = {
+                    Id: boardId,
+                    Name: form.querySelector('#name').value,
+                    Description: form.querySelector('#description').value,
+                    HexaBackgroundColor: form.querySelector('#color').value,
+                    IsActive: true,
+                    CreatedBy: board.CreatedBy,
+                    UpdatedBy: parseInt(userId)
+                };
+
+                try {
+                    await apisRequest.editBoard(updatedBoard);
+                    this.showSuccess('Board atualizada com sucesso!');
+                    modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
+                    setTimeout(() => {
+                        modal.remove();
+                        this.loadBoards();
+                    }, 300);
+                } catch (error) {
+                    console.error('Erro ao atualizar board:', error);
+                    this.showError('Erro ao atualizar board. Tente novamente.');
+                }
+            };
+        } catch (error) {
+            console.error('Erro ao carregar board para edição:', error);
+            this.showError('Erro ao carregar board para edição. Tente novamente.');
+        }
+    }
+
+    async deleteBoard(boardId) {
+        if (!confirm('Tem certeza que deseja excluir este quadro?')) return;
+
+        try {
+            await apisRequest.deleteBoard(boardId);
+            this.showSuccess('Board excluída com sucesso!');
+            await this.loadBoards();
+        } catch (error) {
+            console.error('Erro ao excluir board:', error);
+            this.showError('Erro ao excluir board. Tente novamente.');
+        }
+    }
+
+    async viewBoardDetails(boardId) {
+        try {
+            const board = await apisRequest.GetBoardById(boardId);
+            const columns = await apisRequest.ColumnsBoardId(boardId);
+            
+            const boardDetails = document.getElementById('board-details');
+            boardDetails.innerHTML = `
+                <h2>${board.Name}</h2>
+                <p>${board.Description || 'Sem descrição'}</p>
+                <div class="columns-container">
+                    ${columns.map(column => `
+                        <div class="column">
+                            <h3>${column.Name}</h3>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Erro ao carregar detalhes da board:', error);
+            this.showError('Erro ao carregar detalhes da board.');
+        }
     }
 
     toggleTheme() {
@@ -48,7 +143,6 @@ class BoardManager {
         document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
         localStorage.setItem('theme', isDark ? 'light' : 'dark');
         
-        // Se houver um usuário logado, salvar na API
         const userId = localStorage.getItem('userId');
         if (userId) {
             apisRequest.PersonConfigTheme(userId, isDark ? 'light' : 'dark')
@@ -56,11 +150,104 @@ class BoardManager {
         }
     }
 
+    createAddBoardButton() {
+        const button = document.createElement('div');
+        button.classList.add('board-item', 'add-board');
+        button.innerHTML = `
+            <div class="board-card new-board">
+                <div class="add-board-content">
+                    <i class="fas fa-plus-circle"></i>
+                    <p>Criar novo quadro</p>
+                </div>
+                <div class="hover-effect"></div>
+            </div>
+        `;
+        button.addEventListener('click', () => this.showAddBoardModal());
+        return button;
+    }
+
+    showAddBoardModal() {
+        const modal = document.createElement('div');
+        modal.classList.add('modal', 'flex-centralize');
+        modal.style.animation = 'modalSlideUp 0.3s var(--elastic) forwards';
+
+        const form = document.createElement('form');
+        form.classList.add('modal-content', 'card', 'card-primary');
+        form.innerHTML = `
+            <h2 class="fnt-lg">Novo Quadro</h2>
+            <input id="name" type="text" class="input-primary w-full p-sm border-md" placeholder="Nome do quadro" required>
+            <input id="color" type="color" class="input-primary w-full p-sm border-md" placeholder="Cor de fundo" required>
+            <textarea id="description" class="input-primary w-full p-sm border-md" placeholder="Descrição do quadro" rows="3"></textarea>
+            <div class="flex-row gap-sm w-full">
+                <button type="submit" class="btn btn-primary w-full p-sm border-md">Criar</button>
+                <button type="button" class="btn btn-secondary w-full p-sm border-md">Cancelar</button>
+            </div>
+        `;
+
+        modal.appendChild(form);
+        document.body.appendChild(modal);
+
+        form.querySelector('input').focus();
+
+        form.querySelector('.btn-secondary').onclick = () => {
+            modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
+            setTimeout(() => modal.remove(), 300);
+        };
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            await this.addNewBoard(
+                form.querySelector('#name').value,
+                form.querySelector('#color').value,
+                form.querySelector('#description').value
+            );
+            modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
+            setTimeout(() => {
+                modal.remove();
+                this.loadBoards();
+            }, 300);
+        };
+    }
+
+    async addNewBoard(name, color, description) {
+        try {
+            const userId = localStorage.getItem('userId');
+            const newBoard = {
+                Name: name,
+                Description: description,
+                HexaBackgroundColor: color,
+                IsActive: true,
+                CreatedBy: parseInt(userId),
+                UpdatedBy: parseInt(userId)
+            };
+            
+            console.log('Nova board sendo criada:', newBoard);
+            await apisRequest.AddBoard(newBoard);
+            this.showSuccess('Board criada com sucesso!');
+        } catch (error) {
+            console.error('Erro ao criar board:', error);
+            this.showError('Erro ao criar board. Tente novamente.');
+        }
+    }
+
+    showSuccess(message) {
+        alert(message); // Você pode implementar um toast mais elegante aqui
+    }
+
+    showError(message) {
+        alert(message); // Você pode implementar um toast mais elegante aqui
+    }
+
     async loadBoards() {
         try {
             const boards = await apisRequest.GetBoards();
             this.boardsContainer.innerHTML = ''; // Limpar container
 
+            // Adicionar botão de nova board
+            const addBoardButton = this.createAddBoardButton();
+            this.boardsContainer.appendChild(addBoardButton);
+
+            // Adicionar boards existentes
             boards.forEach(board => {
                 const boardElement = this.createBoardElement(board);
                 this.boardsContainer.appendChild(boardElement);
@@ -72,164 +259,37 @@ class BoardManager {
         }
     }
 
-    // Funções de CRUD das boards
-    async createBoard() {
-        const name = prompt('Digite o título do quadro:');
-        if (!name) return;
-
-        const description = prompt('Digite a descrição do quadro:');
-        
-        try {
-            const newBoard = {
-                Name: name,
-                Description: description,
-                CreatedBy: this.getUserId()
-            };
-
-            await apisRequest.AddBoard(newBoard);
-            await this.loadBoards();
-            this.showSuccess('Quadro criado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao criar quadro:', error);
-            this.showError('Erro ao criar o quadro. Tente novamente.');
-        }
-    }
-
-    async editBoard(boardId) {
-        let updatedBoard = null;
-        
-        try {
-            const board = await apisRequest.GetBoardById(boardId);
-            console.log('Board original recebida:', board);
-
-            const newTitle = prompt('Digite o novo título do quadro:', board.Name || board.Title);
-            if (!newTitle) return;
-
-            const newDescription = prompt('Digite a nova descrição do quadro:', board.Description);
-
-            updatedBoard = {
-                Id: parseInt(boardId),
-                Title: newTitle,
-                Description: newDescription || board.Description,
-                CreatedBy: parseInt(board.CreatedBy),
-                UserId: parseInt(board.UserId || board.CreatedBy),
-                IsActive: true,
-                CreatedOn: board.CreatedOn || new Date().toISOString()
-            };
-
-            console.log('Dados sendo enviados para atualização:', updatedBoard);
-
-            await apisRequest.editBoard(updatedBoard);
-            await this.loadBoards();
-            this.showSuccess('Quadro atualizado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao editar quadro:', error);
-            if (updatedBoard) {
-                console.error('Dados que causaram erro:', updatedBoard);
-            }
-            this.showError('Erro ao editar o quadro. Tente novamente.');
-        }
-    }
-
-    async deleteBoard(boardId) {
-        if (!confirm('Tem certeza que deseja excluir este quadro?')) return;
-
-        try {
-            await apisRequest.deleteBoard(boardId);
-            await this.loadBoards();
-            this.showSuccess('Quadro excluído com sucesso!');
-        } catch (error) {
-            console.error('Erro ao excluir quadro:', error);
-            this.showError('Erro ao excluir o quadro. Tente novamente.');
-        }
-    }
-
     createBoardElement(board) {
         const boardElement = document.createElement('div');
         boardElement.classList.add('board-item');
         boardElement.innerHTML = `
-            <div class="board-card" data-board-id="${board.Id}">
+            <div class="board-card" data-board-id="${board.Id}" style="background-color: ${board.HexaBackgroundColor || '#ffffff'}">
                 <div class="board-header">
                     <h3 class="board-title">${board.Name}</h3>
                     <span class="board-date">${new Date(board.CreatedOn).toLocaleDateString('pt-BR')}</span>
                 </div>
                 <p class="board-description">${board.Description || 'Sem descrição'}</p>
                 <div class="board-actions">
-                    <button class="btn-action btn-edit" onclick="editBoard(${board.Id})" title="Editar">
+                    <button class="btn-action btn-edit" onclick="event.stopPropagation(); editBoard(${board.Id})" title="Editar">
                         <i class="fas fa-edit"></i>
-                        <span class="btn-text">Editar</span>
                     </button>
-                    <button class="btn-action btn-delete" onclick="deleteBoard(${board.Id})" title="Excluir">
+                    <button class="btn-action btn-delete" onclick="event.stopPropagation(); deleteBoard(${board.Id})" title="Excluir">
                         <i class="fas fa-trash"></i>
-                        <span class="btn-text">Excluir</span>
-                    </button>
-                    <button class="btn-action btn-view" onclick="viewBoardDetails(${board.Id})" title="Visualizar">
-                        <i class="fas fa-eye"></i>
-                        <span class="btn-text">Ver</span>
                     </button>
                 </div>
             </div>
         `;
+
+        // Adicionar evento de clique para navegar para a board
+        const boardCard = boardElement.querySelector('.board-card');
+        boardCard.addEventListener('click', () => {
+            window.location.href = `board-details.html?id=${board.Id}`;
+        });
+
         return boardElement;
-    }
-
-    createAddBoardButton() {
-        const button = document.createElement('div');
-        button.classList.add('board-item', 'add-board');
-        button.innerHTML = `
-            <div class="board-card new-board" onclick="this.createBoard()">
-                <div class="add-board-content">
-                    <i class="fas fa-plus-circle"></i>
-                    <p>Criar novo quadro</p>
-                </div>
-                <div class="hover-effect"></div>
-            </div>
-        `;
-        return button;
-    }
-
-    async viewBoardDetails(boardId) {
-        const boardDetails = document.getElementById('board-details');
-        try {
-            const board = await apisRequest.GetBoardById(boardId);
-            const columns = await apisRequest.ColumnsBoardId(boardId);
-            
-            boardDetails.innerHTML = `
-                <h2>${board.Title}</h2>
-                <p>${board.Description || 'Sem descrição'}</p>
-                <div class="columns-container">
-                    ${columns.map(column => `
-                        <div class="column">
-                            <h3>${column.Title}</h3>
-                            <!-- Aqui você pode adicionar as tasks da coluna -->
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-        } catch (error) {
-            console.error('Erro ao carregar detalhes do quadro:', error);
-            this.showError('Erro ao carregar detalhes do quadro.');
-        }
-    }
-
-    getUserId() {
-        return localStorage.getItem('userId');
-    }
-
-    showSuccess(message) {
-        alert(message);
-    }
-
-    showError(message) {
-        alert(message);
     }
 }
 
 // Inicializar
-const boardManager = new BoardManager();
+new BoardManager();
 
-// Exportar funções para uso global
-window.createBoard = () => boardManager.createBoard();
-window.editBoard = (boardId) => boardManager.editBoard(boardId);
-window.deleteBoard = (boardId) => boardManager.deleteBoard(boardId);
-window.viewBoardDetails = (boardId) => boardManager.viewBoardDetails(boardId);
