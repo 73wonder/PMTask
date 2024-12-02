@@ -1,4 +1,5 @@
 // script.js
+import apisRequest from './api.js';
 
 document.addEventListener("DOMContentLoaded", () => {
   const loginForm = document.getElementById("login-form");

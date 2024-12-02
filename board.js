@@ -1,100 +1,235 @@
-const apiBase = "https://personal-ga2xwx9j.outsystemscloud.com/TaskBoard_CS/rest/TaskBoard";
+import apisRequest from './api.js';
 
-// Função para buscar e exibir as boards
-async function taskboards() {
-  try {
-    const response = await fetch(`${apiBase}/boards`);
-    if (response.status === 200) {
-      const boards = await response.json();
-      renderBoards(boards);
-    } else {
-      console.error("Erro ao buscar as boards:", response.status);
+class BoardManager {
+    constructor() {
+        this.boardsContainer = document.getElementById('boards-container');
+        this.themeToggle = document.getElementById('theme-toggle');
+        this.logoutBtn = document.getElementById('logout-btn');
+        
+        this.init();
     }
-  } catch (error) {
-    console.error("Erro ao conectar na API:", error);
-  }
-}
 
-// Função para renderizar as boards na tela
-function renderBoards(boards) {
-  const container = document.getElementById("boards-container");
+    async init() {
+        // Verificar se usuário está logado
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            window.location.href = 'index.html';
+            return;
+        }
 
-  // Limpa o container antes de adicionar novos elementos
-  container.innerHTML = "";
-
-  boards.forEach(board => {
-    const boardElement = document.createElement("div");
-    boardElement.classList.add("board");
-
-    boardElement.innerHTML = `
-      <h2>${board.Name}</h2>
-      <p><strong>ID:</strong> ${board.Id}</p>
-      <p><strong>Descrição:</strong> ${board.Description || "Sem descrição"}</p>
-      <p><strong>Criado por:</strong> ${board.CreatedBy}</p>
-      <button class="details-btn" data-id="${board.Id}">Ver detalhes</button>
-    `;
-
-    container.appendChild(boardElement);
-  });
-
-  // Adiciona evento aos botões "Ver detalhes"
-  const detailButtons = document.querySelectorAll(".details-btn");
-  detailButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      const boardId = button.getAttribute("data-id");
-      fetchBoardDetails(boardId);
-    });
-  });
-}
-
-// Função para buscar e exibir os detalhes de uma Board
-async function fetchBoardDetails(boardId) {
-  try {
-    const response = await fetch(`${apiBase}/Board?BoardId=${boardId}`);
-    if (response.status === 200) {
-      const boardDetails = await response.json();
-      renderBoardDetails(boardDetails);
-    } else {
-      console.error("Erro ao buscar detalhes da board:", response.status);
+        // Configurar event listeners
+        this.setupEventListeners();
+        
+        // Carregar boards
+        await this.loadBoards();
     }
-  } catch (error) {
-    console.error("Erro ao conectar na API:", error);
-  }
+
+    setupEventListeners() {
+        // Configurar logout
+        this.logoutBtn.addEventListener('click', () => this.handleLogout());
+        
+        // Configurar tema
+        if (this.themeToggle) {
+            this.themeToggle.addEventListener('click', () => this.toggleTheme());
+        }
+    }
+
+    handleLogout() {
+        // Limpar dados do localStorage
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
+        
+        // Redirecionar para página de login
+        window.location.href = 'index.html';
+    }
+
+    toggleTheme() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        
+        // Se houver um usuário logado, salvar na API
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            apisRequest.PersonConfigTheme(userId, isDark ? 'light' : 'dark')
+                .catch(error => console.error('Erro ao salvar tema:', error));
+        }
+    }
+
+    async loadBoards() {
+        try {
+            const boards = await apisRequest.GetBoards();
+            this.boardsContainer.innerHTML = ''; // Limpar container
+
+            boards.forEach(board => {
+                const boardElement = this.createBoardElement(board);
+                this.boardsContainer.appendChild(boardElement);
+            });
+
+        } catch (error) {
+            console.error('Erro ao carregar os quadros:', error);
+            this.showError('Erro ao carregar os quadros. Tente novamente.');
+        }
+    }
+
+    // Funções de CRUD das boards
+    async createBoard() {
+        const name = prompt('Digite o título do quadro:');
+        if (!name) return;
+
+        const description = prompt('Digite a descrição do quadro:');
+        
+        try {
+            const newBoard = {
+                Name: name,
+                Description: description,
+                CreatedBy: this.getUserId()
+            };
+
+            await apisRequest.AddBoard(newBoard);
+            await this.loadBoards();
+            this.showSuccess('Quadro criado com sucesso!');
+        } catch (error) {
+            console.error('Erro ao criar quadro:', error);
+            this.showError('Erro ao criar o quadro. Tente novamente.');
+        }
+    }
+
+    async editBoard(boardId) {
+        let updatedBoard = null;
+        
+        try {
+            const board = await apisRequest.GetBoardById(boardId);
+            console.log('Board original recebida:', board);
+
+            const newTitle = prompt('Digite o novo título do quadro:', board.Name || board.Title);
+            if (!newTitle) return;
+
+            const newDescription = prompt('Digite a nova descrição do quadro:', board.Description);
+
+            updatedBoard = {
+                Id: parseInt(boardId),
+                Title: newTitle,
+                Description: newDescription || board.Description,
+                CreatedBy: parseInt(board.CreatedBy),
+                UserId: parseInt(board.UserId || board.CreatedBy),
+                IsActive: true,
+                CreatedOn: board.CreatedOn || new Date().toISOString()
+            };
+
+            console.log('Dados sendo enviados para atualização:', updatedBoard);
+
+            await apisRequest.editBoard(updatedBoard);
+            await this.loadBoards();
+            this.showSuccess('Quadro atualizado com sucesso!');
+        } catch (error) {
+            console.error('Erro ao editar quadro:', error);
+            if (updatedBoard) {
+                console.error('Dados que causaram erro:', updatedBoard);
+            }
+            this.showError('Erro ao editar o quadro. Tente novamente.');
+        }
+    }
+
+    async deleteBoard(boardId) {
+        if (!confirm('Tem certeza que deseja excluir este quadro?')) return;
+
+        try {
+            await apisRequest.deleteBoard(boardId);
+            await this.loadBoards();
+            this.showSuccess('Quadro excluído com sucesso!');
+        } catch (error) {
+            console.error('Erro ao excluir quadro:', error);
+            this.showError('Erro ao excluir o quadro. Tente novamente.');
+        }
+    }
+
+    createBoardElement(board) {
+        const boardElement = document.createElement('div');
+        boardElement.classList.add('board-item');
+        boardElement.innerHTML = `
+            <div class="board-card" data-board-id="${board.Id}">
+                <div class="board-header">
+                    <h3 class="board-title">${board.Name}</h3>
+                    <span class="board-date">${new Date(board.CreatedOn).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <p class="board-description">${board.Description || 'Sem descrição'}</p>
+                <div class="board-actions">
+                    <button class="btn-action btn-edit" onclick="editBoard(${board.Id})" title="Editar">
+                        <i class="fas fa-edit"></i>
+                        <span class="btn-text">Editar</span>
+                    </button>
+                    <button class="btn-action btn-delete" onclick="deleteBoard(${board.Id})" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                        <span class="btn-text">Excluir</span>
+                    </button>
+                    <button class="btn-action btn-view" onclick="viewBoardDetails(${board.Id})" title="Visualizar">
+                        <i class="fas fa-eye"></i>
+                        <span class="btn-text">Ver</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        return boardElement;
+    }
+
+    createAddBoardButton() {
+        const button = document.createElement('div');
+        button.classList.add('board-item', 'add-board');
+        button.innerHTML = `
+            <div class="board-card new-board" onclick="this.createBoard()">
+                <div class="add-board-content">
+                    <i class="fas fa-plus-circle"></i>
+                    <p>Criar novo quadro</p>
+                </div>
+                <div class="hover-effect"></div>
+            </div>
+        `;
+        return button;
+    }
+
+    async viewBoardDetails(boardId) {
+        const boardDetails = document.getElementById('board-details');
+        try {
+            const board = await apisRequest.GetBoardById(boardId);
+            const columns = await apisRequest.ColumnsBoardId(boardId);
+            
+            boardDetails.innerHTML = `
+                <h2>${board.Title}</h2>
+                <p>${board.Description || 'Sem descrição'}</p>
+                <div class="columns-container">
+                    ${columns.map(column => `
+                        <div class="column">
+                            <h3>${column.Title}</h3>
+                            <!-- Aqui você pode adicionar as tasks da coluna -->
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } catch (error) {
+            console.error('Erro ao carregar detalhes do quadro:', error);
+            this.showError('Erro ao carregar detalhes do quadro.');
+        }
+    }
+
+    getUserId() {
+        return localStorage.getItem('userId');
+    }
+
+    showSuccess(message) {
+        alert(message);
+    }
+
+    showError(message) {
+        alert(message);
+    }
 }
 
-// Função para renderizar os detalhes da Board selecionada
-function renderBoardDetails(board) {
-  const detailsContainer = document.getElementById("board-details");
+// Inicializar
+const boardManager = new BoardManager();
 
-  // Renderiza os detalhes
-  detailsContainer.innerHTML = `
-    <h2 class="board-details-title"> ${board.Name}</h2>
-    <p class="board-detail"><strong>ID:</strong> ${board.Id}</p>
-    <p class="board-detail"><strong>Descrição:</strong> ${board.Description || "Sem descrição"}</p>
-    <p class="board-detail"><strong>Criado por:</strong> ${board.CreatedBy}</p>
-    <p class="board-detail"><strong>Atualizado por:</strong> ${board.UpdatedBy}</p>
-  `;
-
-  // Rola a página até os detalhes
-  detailsContainer.scrollIntoView({ behavior: "smooth" });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const logoutButton = document.getElementById("logout-btn");
-
-  if (logoutButton) {
-    logoutButton.addEventListener("click", () => {
-      // Exibir mensagem de confirmação antes de deslogar
-      const confirmLogout = confirm("Você tem certeza que deseja sair?");
-      if (confirmLogout) {
-        // Se o usuário confirmar, realiza o logout
-        localStorage.removeItem("user");
-        window.location.href = "index.html"; // Redireciona para a página principal
-      }
-    });
-  }
-});
-
-
-// Chama a função para carregar as boards
-taskboards();
+// Exportar funções para uso global
+window.createBoard = () => boardManager.createBoard();
+window.editBoard = (boardId) => boardManager.editBoard(boardId);
+window.deleteBoard = (boardId) => boardManager.deleteBoard(boardId);
+window.viewBoardDetails = (boardId) => boardManager.viewBoardDetails(boardId);
