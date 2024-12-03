@@ -1,3 +1,4 @@
+import { ThemeManager } from './theme.js';
 import apisRequest from './api.js';
 
 class BoardDetailsManager {
@@ -7,6 +8,7 @@ class BoardDetailsManager {
         this.boardTitle = document.getElementById('board-title');
         this.backBtn = document.getElementById('back-btn');
         this.addColumnBtn = document.getElementById('add-column-btn');
+        this.themeToggle = document.getElementById('theme-toggle');
         
         // Cache para colunas e tarefas
         this.columnsCache = new Map();
@@ -17,6 +19,7 @@ class BoardDetailsManager {
             return;
         }
 
+        ThemeManager.init(); // Inicializa o tema
         this.init();
     }
 
@@ -32,6 +35,7 @@ class BoardDetailsManager {
     setupEventListeners() {
         this.backBtn.addEventListener('click', () => window.location.href = 'board.html');
         this.addColumnBtn.addEventListener('click', () => this.showAddColumnModal());
+        this.themeToggle.addEventListener('click', () => ThemeManager.toggle());
     }
 
     async loadBoardDetails() {
@@ -150,10 +154,18 @@ class BoardDetailsManager {
     }
 
     createTaskHTML(task) {
+        const completedClass = task.IsCompleted ? 'completed' : '';
+        const checkIcon = task.IsCompleted ? 'fa-check-circle' : 'fa-circle';
+        
         return `
-            <div class="task-card" data-task-id="${task.Id}" data-priority="${task.Priority}" draggable="true">
-                <div class="task-title">${task.Title}</div>
-                <div class="task-description">${task.Description || ''}</div>
+            <div class="task-card ${completedClass}" data-task-id="${task.Id}" data-priority="${task.Priority}" draggable="true">
+                <div class="task-status">
+                    <i class="fas ${checkIcon}"></i>
+                </div>
+                <div class="task-content">
+                    <div class="task-title">${task.Title}</div>
+                    <div class="task-description">${task.Description || ''}</div>
+                </div>
             </div>
         `;
     }
@@ -179,7 +191,21 @@ class BoardDetailsManager {
             taskElement.classList.remove('dragging');
         });
 
-        taskElement.addEventListener('click', () => this.showEditTaskModal(task));
+        // Adiciona evento de clique no ícone de status
+        const statusIcon = taskElement.querySelector('.task-status');
+        if (statusIcon) {
+            statusIcon.addEventListener('click', async (e) => {
+                e.stopPropagation(); // Evita que abra o modal de edição
+                await this.toggleTaskCompletion(task, taskElement);
+            });
+        }
+
+        // Mantém o evento de edição no clique do card
+        taskElement.addEventListener('click', (e) => {
+            if (!e.target.closest('.task-status')) {
+                this.showEditTaskModal(task);
+            }
+        });
     }
 
     showError(message) {
@@ -266,6 +292,13 @@ class BoardDetailsManager {
         form.classList.add('modal-content', 'card', 'card-primary');
         form.innerHTML = `
             <h2 class="fnt-lg">Editar Tarefa</h2>
+            <div class="task-completion-status">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="taskCompleted" ${task.IsCompleted ? 'checked' : ''}>
+                    <span class="checkmark"></span>
+                    Tarefa concluída
+                </label>
+            </div>
             <input type="text" id="taskTitle" class="input-primary w-full p-sm border-md" 
                 value="${task.Title}" placeholder="Título da tarefa" required>
             <textarea id="taskDescription" class="input-primary w-full p-sm border-md" 
@@ -315,6 +348,7 @@ class BoardDetailsManager {
                 Title: form.querySelector('#taskTitle').value,
                 Description: form.querySelector('#taskDescription').value,
                 Priority: parseInt(form.querySelector('#taskPriority').value),
+                IsCompleted: form.querySelector('#taskCompleted').checked,
                 UpdatedBy: parseInt(userId)
             };
 
@@ -483,6 +517,34 @@ class BoardDetailsManager {
         } catch (error) {
             console.error('Erro ao excluir coluna:', error);
             this.showError('Erro ao excluir coluna');
+        }
+    }
+
+    async toggleTaskCompletion(task, taskElement) {
+        try {
+            const updatedTask = {
+                ...task,
+                IsCompleted: !task.IsCompleted,
+                UpdatedBy: parseInt(localStorage.getItem('userId'))
+            };
+
+            await apisRequest.UpdateTask(updatedTask);
+            
+            // Atualiza a UI
+            taskElement.classList.toggle('completed');
+            const statusIcon = taskElement.querySelector('.task-status i');
+            if (statusIcon) {
+                statusIcon.classList.toggle('fa-circle');
+                statusIcon.classList.toggle('fa-check-circle');
+            }
+
+            // Atualiza o objeto da task no cache
+            task.IsCompleted = updatedTask.IsCompleted;
+            
+            this.showSuccess(task.IsCompleted ? 'Tarefa concluída!' : 'Tarefa reaberta!');
+        } catch (error) {
+            console.error('Erro ao atualizar status da tarefa:', error);
+            this.showError('Erro ao atualizar status da tarefa');
         }
     }
 }

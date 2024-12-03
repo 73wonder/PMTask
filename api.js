@@ -82,7 +82,7 @@ const apisRequest = {
     // Configurações
     Themes: async () => apiRequest("Themes", "GET"),
     PersonConfigTheme: async (personId, theme) => 
-        apiRequest(`ConfigPersonTheme?PersonId=${personId}&Theme=${theme}`, "PATCH"),
+        apiRequest(`PersonConfigTheme?PersonId=${personId}&Theme=${theme}`, "PUT"),
 
     // Tasks
     TasksColumnId: async (columnId) => apiRequest(`TasksByColumnId?ColumnId=${columnId}`, "GET"),

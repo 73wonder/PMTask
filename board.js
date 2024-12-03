@@ -1,3 +1,4 @@
+import { ThemeManager } from './theme.js';
 import apisRequest from './api.js';
 
 class BoardManager {
@@ -6,6 +7,7 @@ class BoardManager {
         this.themeToggle = document.getElementById('theme-toggle');
         this.logoutBtn = document.getElementById('logout-btn');
         
+        ThemeManager.init(); // Inicializa o tema
         this.init();
     }
 
@@ -24,7 +26,7 @@ class BoardManager {
         this.logoutBtn.addEventListener('click', () => this.handleLogout());
         
         if (this.themeToggle) {
-            this.themeToggle.addEventListener('click', () => this.toggleTheme());
+            this.themeToggle.addEventListener('click', () => ThemeManager.toggle());
         }
 
         // Configurar funções globais
@@ -135,18 +137,6 @@ class BoardManager {
         } catch (error) {
             console.error('Erro ao carregar detalhes da board:', error);
             this.showError('Erro ao carregar detalhes da board.');
-        }
-    }
-
-    toggleTheme() {
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-        localStorage.setItem('theme', isDark ? 'light' : 'dark');
-        
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-            apisRequest.PersonConfigTheme(userId, isDark ? 'light' : 'dark')
-                .catch(error => console.error('Erro ao salvar tema:', error));
         }
     }
 

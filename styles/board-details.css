@@ -37,6 +37,10 @@
 }
 
 /* Ajustes específicos para o tema escuro */
+[data-theme="dark"] .main-container {
+    background-color: #1a1a1a;
+}
+
 [data-theme="dark"] .task-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
@@ -132,6 +136,12 @@ header {
     gap: 1rem;
 }
 
+.btn-icon {
+    background-color: transparent;
+    border: none;
+    color: var(--text-color);
+}
+
 .header-actions {
     display: flex;
     gap: 1rem;
@@ -190,6 +200,8 @@ header {
     box-shadow: var(--shadow-sm);
     cursor: pointer;
     transition: var(--transition);
+    position: relative;
+    padding-right: 2.5rem;
 }
 
 .task-card:hover {
@@ -316,6 +328,8 @@ textarea.input-primary {
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
+    border-radius: 4px;
+    border: none;
 }
 
 .btn-secondary {
@@ -475,4 +489,86 @@ textarea.input-primary {
     background: var(--bg-hover);
     border-color: var(--primary-color);
     color: var(--primary-color);
+}
+
+/* Estilos para tarefas concluídas */
+.task-card {
+    position: relative;
+    padding-right: 2.5rem; /* Espaço para o ícone de status */
+}
+
+.task-status {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.task-status:hover {
+    transform: scale(1.2);
+}
+
+.task-card.completed {
+    background: var(--bg-hover);
+    opacity: 0.8;
+}
+
+.task-card.completed .task-title {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+
+.task-card.completed .task-description {
+    color: var(--text-secondary);
+}
+
+.task-card.completed .task-status {
+    color: #4CAF50;
+}
+
+/* Estilo para o checkbox personalizado no modal */
+.task-completion-status {
+    margin-bottom: 1rem;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-container input {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.checkbox-container input:checked + .checkmark {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.checkbox-container input:checked + .checkmark::after {
+    content: '\f00c';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: white;
+    font-size: 12px;
+}
+
+.checkbox-container:hover .checkmark {
+    border-color: #4CAF50;
 } 

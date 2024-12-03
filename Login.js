@@ -1,22 +1,18 @@
+import { ThemeManager } from './theme.js';
 import apisRequest from './api.js';
 
 class LoginManager {
     constructor() {
         this.form = document.getElementById('login-form');
         this.themeToggle = document.getElementById('theme-toggle');
-        this.themeIcon = this.themeToggle.querySelector('i');
-        this.themeText = this.themeToggle.querySelector('span');
         
-        this.init();
+        ThemeManager.init();
+        this.setupEventListeners();
     }
 
-    init() {
-        // Carregar tema salvo
-        this.loadSavedTheme();
-        
-        // Event Listeners
+    setupEventListeners() {
         this.form.addEventListener('submit', (e) => this.handleLogin(e));
-        this.themeToggle.addEventListener('click', () => this.toggleTheme());
+        this.themeToggle.addEventListener('click', () => ThemeManager.toggle());
     }
 
     async handleLogin(e) {
@@ -57,34 +53,6 @@ class LoginManager {
         setTimeout(() => {
             errorDiv.style.opacity = '0';
         }, 3000);
-    }
-
-    toggleTheme() {
-        const isDark = document.body.getAttribute('data-theme') === 'dark';
-        document.body.setAttribute('data-theme', isDark ? 'light' : 'dark');
-        
-        // Atualizar ícone e texto
-        this.themeIcon.className = isDark ? 'fas fa-moon' : 'fas fa-sun';
-        this.themeText.textContent = isDark ? 'Modo Escuro' : 'Modo Claro';
-        
-        // Salvar preferência
-        localStorage.setItem('theme', isDark ? 'light' : 'dark');
-        
-        // Se houver um usuário logado, salvar na API
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-            apisRequest.PersonConfigTheme(userId, isDark ? 'light' : 'dark')
-                .catch(error => console.error('Erro ao salvar tema:', error));
-        }
-    }
-
-    loadSavedTheme() {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-        
-        // Atualizar ícone e texto
-        this.themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-        this.themeText.textContent = savedTheme === 'dark' ? 'Modo Claro' : 'Modo Escuro';
     }
 }
 
