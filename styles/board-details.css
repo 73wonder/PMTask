@@ -391,4 +391,88 @@ textarea.input-primary {
     font-size: 1rem;
     color: inherit;
     margin-right: 0.5rem;
+}
+
+/* Estilos para as colunas */
+.column {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    width: 280px;
+    min-width: 280px;
+    max-height: calc(100vh - 100px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.column:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.column-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.column-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.column-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.column-actions button {
+    padding: 0.5rem;
+    border-radius: 4px;
+    background: var(--bg-hover);
+    color: var(--text-color);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.column-actions button:hover {
+    transform: translateY(-1px);
+}
+
+.column-actions .edit-column:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.column-actions .delete-column:hover {
+    background: #dc3545;
+    color: white;
+}
+
+.tasks-container {
+    padding: 1rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.add-task-btn {
+    margin: 1rem;
+    padding: 0.5rem;
+    border: 2px dashed var(--border-color);
+    border-radius: 6px;
+    text-align: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.add-task-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 } 

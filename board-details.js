@@ -370,6 +370,121 @@ class BoardDetailsManager {
 
         return tasksByColumn;
     }
+
+    async showAddColumnModal() {
+        const modal = document.createElement('div');
+        modal.classList.add('modal', 'flex-centralize');
+        modal.style.animation = 'modalSlideUp 0.3s var(--elastic) forwards';
+
+        const form = document.createElement('form');
+        form.classList.add('modal-content', 'card', 'card-primary');
+        form.innerHTML = `
+            <h2 class="fnt-lg">Nova Coluna</h2>
+            <input type="text" id="columnName" class="input-primary w-full p-sm border-md" 
+                placeholder="Nome da coluna" required>
+            <div class="flex-row gap-sm w-full">
+                <button type="submit" class="btn btn-primary w-full p-sm border-md">Criar</button>
+                <button type="button" class="btn btn-secondary w-full p-sm border-md">Cancelar</button>
+            </div>
+        `;
+
+        modal.appendChild(form);
+        document.body.appendChild(modal);
+
+        const closeModal = () => {
+            modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
+            setTimeout(() => modal.remove(), 300);
+        };
+
+        form.querySelector('.btn-secondary').onclick = closeModal;
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const userId = localStorage.getItem('userId');
+            
+            const newColumn = {
+                Name: form.querySelector('#columnName').value,
+                BoardId: parseInt(this.boardId),
+                IsActive: true,
+                CreatedBy: parseInt(userId),
+                UpdatedBy: parseInt(userId)
+            };
+
+            try {
+                await apisRequest.CreateColumn(newColumn);
+                this.showSuccess('Coluna criada com sucesso!');
+                closeModal();
+                await this.loadColumns();
+            } catch (error) {
+                console.error('Erro ao criar coluna:', error);
+                this.showError('Erro ao criar coluna');
+            }
+        };
+    }
+
+    async showEditColumnModal(column) {
+        const modal = document.createElement('div');
+        modal.classList.add('modal', 'flex-centralize');
+        modal.style.animation = 'modalSlideUp 0.3s var(--elastic) forwards';
+
+        const form = document.createElement('form');
+        form.classList.add('modal-content', 'card', 'card-primary');
+        form.innerHTML = `
+            <h2 class="fnt-lg">Editar Coluna</h2>
+            <input type="text" id="columnName" class="input-primary w-full p-sm border-md" 
+                value="${column.Name}" placeholder="Nome da coluna" required>
+            <div class="flex-row gap-sm w-full">
+                <button type="submit" class="btn btn-primary w-full p-sm border-md">Salvar</button>
+                <button type="button" class="btn btn-secondary w-full p-sm border-md">Cancelar</button>
+            </div>
+        `;
+
+        modal.appendChild(form);
+        document.body.appendChild(modal);
+
+        const closeModal = () => {
+            modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
+            setTimeout(() => modal.remove(), 300);
+        };
+
+        form.querySelector('.btn-secondary').onclick = closeModal;
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const userId = localStorage.getItem('userId');
+            
+            const updatedColumn = {
+                ...column,
+                Name: form.querySelector('#columnName').value,
+                UpdatedBy: parseInt(userId)
+            };
+
+            try {
+                await apisRequest.UpdateColumn(updatedColumn);
+                this.showSuccess('Coluna atualizada com sucesso!');
+                closeModal();
+                await this.loadColumns();
+            } catch (error) {
+                console.error('Erro ao atualizar coluna:', error);
+                this.showError('Erro ao atualizar coluna');
+            }
+        };
+    }
+
+    async deleteColumn(columnId) {
+        if (!confirm('Tem certeza que deseja excluir esta coluna? Todas as tarefas serão excluídas também.')) {
+            return;
+        }
+
+        try {
+            await apisRequest.RemoveColumn(columnId);
+            this.showSuccess('Coluna excluída com sucesso!');
+            await this.loadColumns();
+        } catch (error) {
+            console.error('Erro ao excluir coluna:', error);
+            this.showError('Erro ao excluir coluna');
+        }
+    }
 }
 
 // Inicializar
