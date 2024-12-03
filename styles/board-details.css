@@ -1,0 +1,394 @@
+:root {
+    --transition: all 0.25s ease-in-out;
+    --elastic: cubic-bezier(0.25, 1, 0.5, 1);
+    --column-width: 280px;
+    --column-gap: 1rem;
+    
+    /* Cores do tema claro */
+    --bg-color: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-hover: #f0f0f0;
+    --text-color: #2c3e50;
+    --text-secondary: #6c757d;
+    --border-color: #dee2e6;
+    --primary-color: #007bff;
+    --secondary-color: #e9ecef;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Tema escuro */
+[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-hover: #363636;
+    --text-color: #e1e1e1;
+    --text-secondary: #a0a0a0;
+    --border-color: #404040;
+    --primary-color: #4dabf7;
+    --secondary-color: #343a40;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Atualize as sombras para usar a variável de cor */
+:root {
+    --shadow-sm: 0 1px 3px var(--shadow-color);
+    --shadow-md: 0 4px 6px var(--shadow-color);
+    --shadow-lg: 0 10px 15px var(--shadow-color);
+}
+
+/* Ajustes específicos para o tema escuro */
+[data-theme="dark"] .task-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .column {
+    background: #252525;
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .add-task-btn {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .input-primary {
+    background: var(--bg-color);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .btn-secondary {
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+/* Ajuste nas cores de prioridade para o tema escuro */
+[data-theme="dark"] .task-card[data-priority="1"] {
+    border-left: 3px solid #6dd66d; /* Verde mais claro */
+}
+
+[data-theme="dark"] .task-card[data-priority="2"] {
+    border-left: 3px solid #ffd54f; /* Amarelo mais claro */
+}
+
+[data-theme="dark"] .task-card[data-priority="3"] {
+    border-left: 3px solid #ff6b6b; /* Vermelho mais claro */
+}
+
+/* Ajuste no backdrop do modal para o tema escuro */
+[data-theme="dark"] .modal {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+/* Melhorias nos botões para o tema escuro */
+[data-theme="dark"] .btn-primary {
+    background-color: #4dabf7;
+}
+
+[data-theme="dark"] .btn-danger {
+    background-color: #ff6b6b;
+}
+
+/* Ajuste nas cores do loading spinner */
+[data-theme="dark"] .loading-spinner {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .loading-spinner i {
+    color: var(--primary-color);
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+}
+
+header {
+    padding: 1rem;
+    background-color: var(--bg-color);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.board-container {
+    display: flex;
+    gap: var(--column-gap);
+    padding: 1rem;
+    overflow-x: auto;
+    min-height: calc(100vh - 80px);
+}
+
+.column {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    width: var(--column-width);
+    min-width: var(--column-width);
+    max-height: calc(100vh - 100px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.column:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.column-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.column-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.tasks-container {
+    padding: 1rem;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.task-card {
+    background: var(--bg-color);
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.task-title {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.task-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.add-task-btn {
+    margin: 1rem;
+    padding: 0.5rem;
+    border: 2px dashed var(--border-color);
+    border-radius: 6px;
+    text-align: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.add-task-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Estilos para Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: var(--bg-color);
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Estilos para Formulários */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.input-primary {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+textarea.input-primary {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Estilos para Prioridades */
+.task-card[data-priority="1"] {
+    border-left: 3px solid #4CAF50; /* Verde para baixa prioridade */
+}
+
+.task-card[data-priority="2"] {
+    border-left: 3px solid #FFC107; /* Amarelo para média prioridade */
+}
+
+.task-card[data-priority="3"] {
+    border-left: 3px solid #F44336; /* Vermelho para alta prioridade */
+}
+
+/* Animações */
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes modalSlideDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+/* Botões */
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.loading-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 200px;
+}
+
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    color: var(--text-secondary);
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.column {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.error-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.error-message i {
+    font-size: 3rem;
+    color: #dc3545;
+}
+
+.error-message button {
+    margin-top: 1rem;
+}
+
+.error-message button i {
+    font-size: 1rem;
+    color: inherit;
+    margin-right: 0.5rem;
+} 

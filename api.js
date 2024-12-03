@@ -50,7 +50,7 @@ const apisRequest = {
     RemoveColumn: async (columnId) => apiRequest(`Column?ColumnId=${columnId}`, "DELETE"),
     ColumnsBoardId: async (boardId) => {
         try {
-            const resp = await apiRequest(`ColumnsByBoardId?BoardId=${boardId}`, "GET");
+            const resp = await apiRequest(`ColumnByBoardId?BoardId=${boardId}`, "GET");
             return Array.isArray(resp) ? resp : [];
         } catch (error) {
             console.error('Falha ao encontrar as colunas:', error);
@@ -86,7 +86,7 @@ const apisRequest = {
 
     // Tasks
     TasksColumnId: async (columnId) => apiRequest(`TasksByColumnId?ColumnId=${columnId}`, "GET"),
-    TasksByBoardId: async (boardId) => apiRequest(`TasksByBoardId?BoardId=${boardId}`, "GET"),
+    TasksByBoardId: async (boardId) => apiRequest(`TaskByBoardId?BoardId=${boardId}`, "GET"),
     RemoveTask: async (taskId) => apiRequest(`Task?TaskId=${taskId}`, "DELETE"),
     UpdateTask: async (task) => apiRequest("Task", "PUT", task),
     AddTask: async (task) => apiRequest("Task", "POST", task)

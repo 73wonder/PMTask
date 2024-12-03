@@ -11,24 +11,29 @@
 
 <body>
   <header>
-    <h1>Lista de Task Boards</h1>
-    <div class="controle-user">
-      <button id="logout-btn">Sair</button>
-      <button id="theme-toggle">Tema</button>
+    <div class="header-content">
+      <h1><i class="fas fa-clipboard-list"></i> Lista de Task Boards</h1>
+      <div class="header-actions">
+        <button id="logout-btn" class="btn btn-outline">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Sair</span>
+        </button>
+        <button id="theme-toggle" class="btn btn-icon">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
     </div>
   </header>
 
   <main>
-    <div id="boards-container"></div>
-
-    <div id="board-details">
-      <h2>Detalhes da Board Selecionada</h2>
-      <p>Selecione uma Board para ver os detalhes aqui.</p>
+    <div class="container">
+      <div id="boards-container" class="boards-grid">
+        <!-- Boards serão inseridas aqui dinamicamente -->
+      </div>
     </div>
   </main>
 
   <script src="board.js" type="module"></script>
-  <script src="Login.js" type="module"></script>
 </body>
 
 </html>

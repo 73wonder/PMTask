@@ -6,6 +6,8 @@
     --primary-color: #4A90E2;
     --header-bg: #f8f9fa;
     --card-bg: #ffffff;
+    --btn-hover: #3a7bc7;
+    --btn-dark-hover: #2d2d2d;
 }
 
 [data-theme="dark"] {
@@ -14,6 +16,8 @@
     --primary-color: #64B5F6;
     --header-bg: #1E1E1E;
     --card-bg: #2D2D2D;
+    --btn-hover: #4a9fe8;
+    --btn-dark-hover: #3d3d3d;
 }
 
 body {
@@ -72,12 +76,29 @@ button {
 button:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
+    background: var(--btn-hover);
 }
 
-#theme-toggle, #logout {
+#theme-toggle, #logout-btn {
     background: transparent;
     color: var(--text-color);
-    padding: 0.5rem;
+    padding: 0.8rem;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#theme-toggle:hover, #logout-btn:hover {
+    background: var(--btn-dark-hover);
+    transform: rotate(5deg) scale(1.1);
+}
+
+#theme-toggle i, #logout-btn i {
+    font-size: 1.2rem;
+    transition: var(--transition);
 }
 
 .boards-container {
@@ -86,6 +107,7 @@ button:hover {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
     animation: fadeIn 0.5s var(--elastic);
+    
 }
 
 @keyframes fadeIn {
