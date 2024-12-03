@@ -158,32 +158,80 @@ class BoardManager {
 
     showAddBoardModal() {
         const modal = document.createElement('div');
-        modal.classList.add('modal', 'flex-centralize');
+        modal.classList.add('modal');
         modal.style.animation = 'modalSlideUp 0.3s var(--elastic) forwards';
 
         const form = document.createElement('form');
-        form.classList.add('modal-content', 'card', 'card-primary');
+        form.classList.add('modal-content');
         form.innerHTML = `
-            <h2 class="fnt-lg">Novo Quadro</h2>
-            <input id="name" type="text" class="input-primary w-full p-sm border-md" placeholder="Nome do quadro" required>
-            <input id="color" type="color" class="input-primary w-full p-sm border-md" placeholder="Cor de fundo" required>
-            <textarea id="description" class="input-primary w-full p-sm border-md" placeholder="Descrição do quadro" rows="3"></textarea>
-            <div class="flex-row gap-sm w-full">
-                <button type="submit" class="btn btn-primary w-full p-sm border-md">Criar</button>
-                <button type="button" class="btn btn-secondary w-full p-sm border-md">Cancelar</button>
+            <h2>Novo Quadro</h2>
+            
+            <div class="form-group">
+                <label class="form-label" for="name">Nome do Quadro</label>
+                <input 
+                    id="name" 
+                    type="text" 
+                    class="form-input" 
+                    placeholder="Digite o nome do quadro" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="color">Cor do Quadro</label>
+                <div class="color-input-wrapper">
+                    <input 
+                        id="color" 
+                        type="color" 
+                        value="#4A90E2"
+                        required
+                    >
+                    <div class="color-preview" style="background-color: #4A90E2"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="description">Descrição</label>
+                <textarea 
+                    id="description" 
+                    class="form-input" 
+                    placeholder="Digite uma descrição para o quadro" 
+                    rows="3"
+                ></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" class="btn-modal btn-confirm">
+                    <i class="fas fa-check"></i>
+                    Criar Quadro
+                </button>
+                <button type="button" class="btn-modal btn-cancel">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
             </div>
         `;
 
         modal.appendChild(form);
         document.body.appendChild(modal);
 
-        form.querySelector('input').focus();
+        // Foca no input de nome automaticamente
+        form.querySelector('#name').focus();
 
-        form.querySelector('.btn-secondary').onclick = () => {
+        // Preview da cor
+        const colorInput = form.querySelector('#color');
+        const colorPreview = form.querySelector('.color-preview');
+        colorInput.addEventListener('input', (e) => {
+            colorPreview.style.backgroundColor = e.target.value;
+        });
+
+        // Botão cancelar
+        form.querySelector('.btn-cancel').onclick = () => {
             modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
             setTimeout(() => modal.remove(), 300);
         };
 
+        // Submit do formulário
         form.onsubmit = async (e) => {
             e.preventDefault();
             await this.addNewBoard(
