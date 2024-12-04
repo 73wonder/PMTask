@@ -29,14 +29,18 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: var(--transition);
+  justify-content: center;
+  align-items: center;
 }
 
 .login-container {
   width: 100%;
   max-width: 400px;
-  margin: auto;
   padding: 2rem;
   animation: fadeInDown 0.6s var(--elastic);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .logo {
@@ -54,6 +58,7 @@ form {
   box-shadow: var(--shadow-md);
   animation: fadeInUp 0.5s var(--elastic);
   transition: transform 0.3s var(--elastic), box-shadow 0.3s ease;
+  width: 100%;
 }
 
 form:hover {
@@ -82,7 +87,7 @@ form:hover {
 }
 
 input {
-  width: 100%;
+  width: 80%;
   padding: 0.8rem 1rem 0.8rem 2.5rem;
   border: 2px solid transparent;
   border-radius: 8px;

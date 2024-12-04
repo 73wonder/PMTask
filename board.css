@@ -8,6 +8,13 @@
     --card-bg: #ffffff;
     --btn-hover: #3a7bc7;
     --btn-dark-hover: #2d2d2d;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.16);
+    --shadow-lg: 0 8px 12px rgba(0, 0, 0, 0.2);
+    --border-radius: 12px;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 2rem;
 }
 
 [data-theme="dark"] {
@@ -18,6 +25,9 @@
     --card-bg: #2D2D2D;
     --btn-hover: #4a9fe8;
     --btn-dark-hover: #3d3d3d;
+    --shadow-sm: 0 1px 3px rgba(255, 255, 255, 0.1);
+    --shadow-md: 0 3px 6px rgba(255, 255, 255, 0.12);
+    --shadow-lg: 0 8px 12px rgba(255, 255, 255, 0.16);
 }
 
 body {
@@ -33,50 +43,75 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
+    padding: var(--spacing-md) var(--spacing-lg);
     background-color: var(--header-bg);
     box-shadow: var(--shadow-sm);
+    animation: fadeInDown 0.6s var(--elastic);
 }
 
 .header-left, .header-right {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--spacing-md);
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
     color: var(--primary-color);
+    transition: var(--transition);
 }
 
 .logo i {
     font-size: 1.5rem;
+    animation: pulseScale 2s var(--elastic) infinite;
 }
 
 .logo h1 {
     margin: 0;
     font-size: 1.5rem;
+    transform-origin: left;
+    transition: var(--transition);
 }
 
 button {
-    padding: 0.5rem 1rem;
+    padding: var(--spacing-sm) var(--spacing-md);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     background: var(--primary-color);
     color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
     transition: var(--transition);
+    position: relative;
+    overflow: hidden;
 }
 
 button:hover {
-    transform: translateY(-2px);
+    transform: translateY(-2px) scale(1.02);
     box-shadow: var(--shadow-md);
     background: var(--btn-hover);
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+button:hover::after {
+    width: 300px;
+    height: 300px;
 }
 
 #theme-toggle, #logout-btn {
@@ -89,11 +124,13 @@ button:hover {
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: var(--transition);
 }
 
 #theme-toggle:hover, #logout-btn:hover {
     background: var(--btn-dark-hover);
-    transform: rotate(5deg) scale(1.1);
+    transform: rotate(15deg) scale(1.15);
+    box-shadow: var(--shadow-md);
 }
 
 #theme-toggle i, #logout-btn i {
@@ -102,12 +139,11 @@ button:hover {
 }
 
 .boards-container {
-    padding: 2rem;
+    padding: var(--spacing-lg);
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
     animation: fadeIn 0.5s var(--elastic);
-    
 }
 
 @keyframes fadeIn {
@@ -119,4 +155,27 @@ button:hover {
         opacity: 1;
         transform: translateY(0);
     }
-} 
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulseScale {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
