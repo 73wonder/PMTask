@@ -88,6 +88,9 @@ class BoardDetailsManager {
                 this.columnsCache.set(column.Id, column);
             }
 
+            // Após renderizar todas as colunas e tarefas
+            this.loadTaskStates();
+
         } catch (error) {
             console.error('Erro ao carregar colunas:', error);
             this.showError('Erro ao carregar colunas');
@@ -154,8 +157,12 @@ class BoardDetailsManager {
     }
 
     createTaskHTML(task) {
-        const completedClass = task.IsCompleted ? 'completed' : '';
-        const checkIcon = task.IsCompleted ? 'fa-check-circle' : 'fa-circle';
+        // Verifica o estado salvo no localStorage
+        const tasksState = JSON.parse(localStorage.getItem('tasksState')) || {};
+        const isCompleted = tasksState[task.Id] !== undefined ? tasksState[task.Id] : task.IsCompleted;
+        
+        const completedClass = isCompleted ? 'completed' : '';
+        const checkIcon = isCompleted ? 'fa-check-circle' : 'fa-circle';
         
         return `
             <div class="task-card ${completedClass}" data-task-id="${task.Id}" data-priority="${task.Priority}" draggable="true">
@@ -511,7 +518,21 @@ class BoardDetailsManager {
         }
 
         try {
+            // Primeiro, vamos pegar todas as tarefas da coluna para limpar seus estados
+            const tasksInColumn = await apisRequest.TasksColumnId(columnId);
+            
+            // Remove a coluna
             await apisRequest.RemoveColumn(columnId);
+
+            // Limpa o estado das tarefas excluídas do localStorage
+            const tasksState = JSON.parse(localStorage.getItem('tasksState')) || {};
+            if (Array.isArray(tasksInColumn)) {
+                tasksInColumn.forEach(task => {
+                    delete tasksState[task.Id];
+                });
+                localStorage.setItem('tasksState', JSON.stringify(tasksState));
+            }
+
             this.showSuccess('Coluna excluída com sucesso!');
             await this.loadColumns();
         } catch (error) {
@@ -522,6 +543,11 @@ class BoardDetailsManager {
 
     async toggleTaskCompletion(task, taskElement) {
         try {
+            // Salva o estado no localStorage antes de fazer a requisição
+            const tasksState = JSON.parse(localStorage.getItem('tasksState')) || {};
+            tasksState[task.Id] = !task.IsCompleted;
+            localStorage.setItem('tasksState', JSON.stringify(tasksState));
+
             const updatedTask = {
                 ...task,
                 IsCompleted: !task.IsCompleted,
@@ -546,6 +572,24 @@ class BoardDetailsManager {
             console.error('Erro ao atualizar status da tarefa:', error);
             this.showError('Erro ao atualizar status da tarefa');
         }
+    }
+
+    // Adicione este método para carregar o estado inicial das tarefas
+    loadTaskStates() {
+        const tasksState = JSON.parse(localStorage.getItem('tasksState')) || {};
+        const taskElements = document.querySelectorAll('.task-card');
+        
+        taskElements.forEach(taskElement => {
+            const taskId = taskElement.dataset.taskId;
+            if (tasksState[taskId]) {
+                taskElement.classList.add('completed');
+                const statusIcon = taskElement.querySelector('.task-status i');
+                if (statusIcon) {
+                    statusIcon.classList.remove('fa-circle');
+                    statusIcon.classList.add('fa-check-circle');
+                }
+            }
+        });
     }
 }
 
