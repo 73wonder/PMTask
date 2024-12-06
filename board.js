@@ -52,25 +52,89 @@ class BoardManager {
             const form = document.createElement('form');
             form.classList.add('modal-content', 'card', 'card-primary');
             form.innerHTML = `
-                <h2 class="fnt-lg">Editar Quadro</h2>
-                <input id="name" type="text" class="input-primary w-full p-sm border-md" placeholder="Nome do quadro" value="${board.Name}" required>
-                <input id="color" type="color" class="input-primary w-full p-sm border-md" value="${board.HexaBackgroundColor || '#ffffff'}" required>
-                <textarea id="description" class="input-primary w-full p-sm border-md" placeholder="Descrição do quadro" rows="3">${board.Description || ''}</textarea>
-                <div class="flex-row gap-sm w-full">
-                    <button type="submit" class="btn btn-primary w-full p-sm border-md">Salvar</button>
-                    <button type="button" class="btn btn-secondary w-full p-sm border-md">Cancelar</button>
+                <div class="modal-header">
+                    <h2 class="modal-title">
+                        <i class="fas fa-edit"></i>
+                        Editar Quadro
+                    </h2>
+                    <button type="button" class="btn-close" aria-label="Fechar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="name" class="form-label">Nome do Quadro</label>
+                        <div class="input-group">
+                            <i class="fas fa-clipboard-list"></i>
+                            <input 
+                                id="name" 
+                                type="text" 
+                                class="form-input" 
+                                placeholder="Digite o nome do quadro" 
+                                value="${board.Name}"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="color" class="form-label">Cor do Quadro</label>
+                        <div class="color-input-wrapper">
+                            <input 
+                                id="color" 
+                                type="color" 
+                                value="${board.HexaBackgroundColor || '#ffffff'}"
+                                required
+                            >
+                            <div class="color-preview" style="background-color: ${board.HexaBackgroundColor || '#ffffff'}"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description" class="form-label">Descrição</label>
+                        <div class="input-group">
+                            <i class="fas fa-align-left"></i>
+                            <textarea 
+                                id="description" 
+                                class="form-input" 
+                                placeholder="Digite uma descrição para o quadro" 
+                                rows="3"
+                            >${board.Description || ''}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Salvar Alterações
+                    </button>
+                    <button type="button" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
                 </div>
             `;
 
             modal.appendChild(form);
             document.body.appendChild(modal);
 
-            form.querySelector('input').focus();
+            // Preview da cor
+            const colorInput = form.querySelector('#color');
+            const colorPreview = form.querySelector('.color-preview');
+            colorInput.addEventListener('input', (e) => {
+                colorPreview.style.backgroundColor = e.target.value;
+            });
 
-            form.querySelector('.btn-secondary').onclick = () => {
-                modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
-                setTimeout(() => modal.remove(), 300);
-            };
+            // Botões de fechar
+            const closeButtons = form.querySelectorAll('.btn-close, .btn-secondary');
+            closeButtons.forEach(button => {
+                button.onclick = () => {
+                    modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
+                    setTimeout(() => modal.remove(), 300);
+                };
+            });
 
             form.onsubmit = async (e) => {
                 e.preventDefault();
@@ -158,54 +222,71 @@ class BoardManager {
 
     showAddBoardModal() {
         const modal = document.createElement('div');
-        modal.classList.add('modal');
+        modal.classList.add('modal', 'flex-centralize');
         modal.style.animation = 'modalSlideUp 0.3s var(--elastic) forwards';
 
         const form = document.createElement('form');
-        form.classList.add('modal-content');
+        form.classList.add('modal-content', 'card', 'card-primary');
         form.innerHTML = `
-            <h2>Novo Quadro</h2>
-            
-            <div class="form-group">
-                <label class="form-label" for="name">Nome do Quadro</label>
-                <input 
-                    id="name" 
-                    type="text" 
-                    class="form-input" 
-                    placeholder="Digite o nome do quadro" 
-                    required
-                >
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-plus-circle"></i>
+                    Novo Quadro
+                </h2>
+                <button type="button" class="btn-close" aria-label="Fechar">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="name" class="form-label">Nome do Quadro</label>
+                    <div class="input-group">
+                        <i class="fas fa-clipboard-list"></i>
+                        <input 
+                            id="name" 
+                            type="text" 
+                            class="form-input" 
+                            placeholder="Digite o nome do quadro" 
+                            required
+                        >
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label" for="color">Cor do Quadro</label>
-                <div class="color-input-wrapper">
-                    <input 
-                        id="color" 
-                        type="color" 
-                        value="#4A90E2"
-                        required
-                    >
-                    <div class="color-preview" style="background-color: #4A90E2"></div>
+                <div class="form-group">
+                    <label for="color" class="form-label">Cor do Quadro</label>
+                    <div class="color-input-wrapper">
+                        <input 
+                            id="color" 
+                            type="color" 
+                            value="#4A90E2"
+                            required
+                        >
+                        <div class="color-preview" style="background-color: #4A90E2"></div>
+                        <span class="color-hint">Esta cor será usada como fundo do quadro</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description" class="form-label">Descrição</label>
+                    <div class="input-group">
+                        <i class="fas fa-align-left"></i>
+                        <textarea 
+                            id="description" 
+                            class="form-input" 
+                            placeholder="Digite uma descrição para o quadro" 
+                            rows="3"
+                        ></textarea>
+                    </div>
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="description">Descrição</label>
-                <textarea 
-                    id="description" 
-                    class="form-input" 
-                    placeholder="Digite uma descrição para o quadro" 
-                    rows="3"
-                ></textarea>
-            </div>
-
-            <div class="modal-actions">
-                <button type="submit" class="btn-modal btn-confirm">
-                    <i class="fas fa-check"></i>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-plus"></i>
                     Criar Quadro
                 </button>
-                <button type="button" class="btn-modal btn-cancel">
+                <button type="button" class="btn btn-secondary">
                     <i class="fas fa-times"></i>
                     Cancelar
                 </button>
@@ -225,25 +306,33 @@ class BoardManager {
             colorPreview.style.backgroundColor = e.target.value;
         });
 
-        // Botão cancelar
-        form.querySelector('.btn-cancel').onclick = () => {
-            modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
-            setTimeout(() => modal.remove(), 300);
-        };
+        // Botões de fechar
+        const closeButtons = form.querySelectorAll('.btn-close, .btn-secondary');
+        closeButtons.forEach(button => {
+            button.onclick = () => {
+                modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
+                setTimeout(() => modal.remove(), 300);
+            };
+        });
 
         // Submit do formulário
         form.onsubmit = async (e) => {
             e.preventDefault();
-            await this.addNewBoard(
-                form.querySelector('#name').value,
-                form.querySelector('#color').value,
-                form.querySelector('#description').value
-            );
-            modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
-            setTimeout(() => {
-                modal.remove();
-                this.loadBoards();
-            }, 300);
+            try {
+                await this.addNewBoard(
+                    form.querySelector('#name').value,
+                    form.querySelector('#color').value,
+                    form.querySelector('#description').value
+                );
+                modal.style.animation = 'modalSlideDown 0.3s var(--elastic) forwards';
+                setTimeout(() => {
+                    modal.remove();
+                    this.loadBoards();
+                }, 300);
+            } catch (error) {
+                console.error('Erro ao criar board:', error);
+                this.showError('Erro ao criar board. Tente novamente.');
+            }
         };
     }
 
